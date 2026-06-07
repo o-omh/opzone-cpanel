@@ -20,7 +20,36 @@ services:
       retries: 3
       start_period: 5s
 
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile-nginx
+      args:
+        CERT_DIR: ${FULL_PATH_CERT_DIR}
+        CONF_DIR: ${FULL_PATH_CONF_DIR}
+        DOMAIN: ${BASE_DOMAIN}
+        ROOT_DIR: ${ROOT_DIR}
+        SERVER_IP: ${SERVER_IP}
+    container_name: ${NGINX_CONTAINER_NAME}
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - opq_certs:/etc/nginx/certs
+      - opq_nginx_data:/var/www/html
+    env_file:
+      .env
+    networks:
+      - opq_network
+    depends_on:
+      mkcert:
+        condition: service_healthy
+
 volumes:
+  opq_nginx_data:
+    name: opq_root
+    external: true
   opq_certs:
     name: opq_certs
     external: true
