@@ -5,7 +5,7 @@ verify_docker_installation() {
 
     if command -v docker >/dev/null 2>&1; then
         docker --version
-        return 0
+        exit 0
     fi
 
     echo "Docker n'est pas installé."
@@ -13,27 +13,23 @@ verify_docker_installation() {
 }
 
 install_docker() {
-    if command -v docker >/dev/null 2>&1; then
-        echo "Docker est déjà installé :"
-        docker --version
-        return 0
-    fi
+    verify_docker_installation;
 
-    if [ "$(id -u)" -ne 0 ]; then
-        echo "Veuillez exécuter cette fonction en tant que root."
-        return 1
-    fi
-
-    [ -f /etc/os-release ] || {
+    if [ ! -f /etc/os-release ]; then
         echo "Impossible d'identifier le système."
         return 1
-    }
+    fi
 
     . /etc/os-release
     echo "Système détecté : $PRETTY_NAME"
 
     case "$ID" in
-        ubuntu|debian|centos|rhel|rocky|almalinux)
+        ubuntu|debian)
+            apt-get update
+            apt-get install -y ca-certificates curl gnupg lsb-release
+            curl -fsSL https://get.docker.com | sh
+            ;;
+        centos|rhel|rocky|almalinux)
             curl -fsSL https://get.docker.com | sh
             ;;
         fedora)
@@ -43,24 +39,10 @@ install_docker() {
         alpine)
             apk update
             apk add docker docker-cli
-            rc-update add docker default
-            service docker start
             ;;
         *)
             echo "Distribution non prise en charge automatiquement."
             return 1
             ;;
     esac
-
-    if command -v docker >/dev/null 2>&1; then
-        echo "Docker installé avec succès :"
-        docker --version
-
-        if command -v systemctl >/dev/null 2>&1; then
-            systemctl enable --now docker
-        fi
-    else
-        echo "Échec de l'installation de Docker."
-        return 1
-    fi
 }
