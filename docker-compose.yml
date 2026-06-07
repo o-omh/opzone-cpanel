@@ -1,0 +1,30 @@
+services:
+  mkcert:
+    build:
+      context: .
+      dockerfile: Dockerfile-mkcert
+      args:
+        CERT_DIR: ${CERT_DIR}
+        DOMAIN: ${BASE_DOMAIN}
+        SERVER_IP: ${SERVER_IP}
+    container_name: ${CERT_CONTAINER_NAME}
+    restart: always
+    volumes:
+      - opq_certs:/certs
+    env_file:
+      .env
+    healthcheck:
+      test: ["CMD", "sh", "-c", "test -f $(mkcert -CAROOT)/rootCA.pem && test -f /${CERT_DIR}/${BASE_DOMAIN}-cert.pem && test -f /${CERT_DIR}/${BASE_DOMAIN}-key.pem"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  opq_certs:
+    name: opq_certs
+    external: true
+
+networks:
+  opq_network:
+    external: true
