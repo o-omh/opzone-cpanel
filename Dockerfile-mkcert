@@ -1,0 +1,27 @@
+# Utilise l'image mkcert Alpine existante
+FROM alpine/mkcert:latest
+
+ARG CERT_DIR
+ARG DOMAIN
+ARG SERVER_IP
+
+# Définit le répertoire de travail
+WORKDIR /$CERT_DIR
+
+# Installe tini pour une bonne gestion des signaux (optionnel)
+RUN apk add --no-cache tini
+
+# Installer une autorité de certification (CA) locale
+RUN mkcert -install
+
+# Crée un certificat pour localhost
+RUN mkcert \
+  -cert-file "$DOMAIN"-cert.pem \
+  -key-file "$DOMAIN"-key.pem \
+  $DOMAIN $SERVER_IP ::1
+
+# Utilise tini comme point d'entrée
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Commande par défaut : ouvre un shell interactif
+CMD ["sleep", "infinity"]

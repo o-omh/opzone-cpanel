@@ -1,0 +1,40 @@
+FROM nginx:alpine
+
+ARG CERT_DIR
+ARG CONF_DIR
+ARG DOMAIN
+ARG ROOT_DIR
+ARG SERVER_IP
+
+# Modification de la config par défaut
+RUN cat > $CONF_DIR/default.conf <<EOF
+server {
+    listen 443 ssl default_server;
+    http2 on;
+
+    server_name $DOMAIN $SERVER_IP;
+
+    ssl_certificate     $CERT_DIR/$DOMAIN-cert.pem;
+    ssl_certificate_key $CERT_DIR/$DOMAIN-key.pem;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location / {
+        try_files \$uri \$uri/ =404;
+    }
+}
+
+server {
+    listen 80 default_server;
+    server_name $DOMAIN $SERVER_IP;
+
+    return 301 https://\$host\$request_uri;
+}
+EOF
+
+WORKDIR $ROOT_DIR
+
+EXPOSE 80 443
+
+CMD ["nginx", "-g", "daemon off;"]
