@@ -1,14 +1,15 @@
 #!/bin/sh
 
 verify_docker_installation() {
-    echo "Vérification de l'installation de docker ..."
+    echo ""
+    echo "⏳ Vérification de l'installation de docker ..."
 
     if command -v docker > /dev/null 2>&1; then
         docker --version
         exit 0
     fi
 
-    echo "Docker n'est pas installé."
+    echo "❌ Docker n'est pas installé."
     return 1
 }
 
@@ -16,11 +17,13 @@ install_docker() {
     verify_docker_installation;
 
     if [ ! -f /etc/os-release ]; then
-        echo "Impossible d'identifier le système."
+        echo ""
+        echo "❌ Impossible d'identifier le système."
         return 1
     fi
 
     . /etc/os-release
+    echo ""
     echo "Système détecté : $PRETTY_NAME"
 
     case "$ID" in
@@ -41,17 +44,22 @@ install_docker() {
             apk add docker docker-cli
             ;;
         *)
-            echo "Distribution non prise en charge automatiquement."
+            echo ""
+            echo "⚠️ Distribution non prise en charge automatiquement."
             return 1
             ;;
     esac
+
+    start_docker_service
 }
 
 start_docker_service() {
-    echo "Démarrage du service Docker..."
+    echo ""
+    echo "⏳ Démarrage du service Docker..."
 
     if ! command -v docker > /dev/null 2>&1; then
-        echo "Docker n'est pas installé."
+        echo ""
+        echo "❌ Docker n'est pas installé."
         return 1
     fi
 
@@ -62,7 +70,7 @@ start_docker_service() {
     	rc-update add docker default
         service docker start
     else
-        echo "Démarrage manuel requis."
+        echo "⚠️⚠️⚠️ Démarrage manuel requis."
     fi
 }
 
