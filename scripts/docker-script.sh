@@ -3,7 +3,7 @@
 verify_docker_installation() {
     echo "Vérification de l'installation de docker ..."
 
-    if command -v docker >/dev/null 2>&1; then
+    if command -v docker > /dev/null 2>&1; then
         docker --version
         exit 0
     fi
@@ -45,4 +45,23 @@ install_docker() {
             return 1
             ;;
     esac
+}
+
+start_docker_service() {
+    echo "Démarrage du service Docker..."
+
+    if ! command -v docker > /dev/null 2>&1; then
+        echo "Docker n'est pas installé."
+        return 1
+    fi
+
+    if command -v systemctl > /dev/null 2>&1; then
+        systemctl enable docker
+        systemctl start docker
+    elif command -v rc-update > /dev/null 2>&1; then
+    	rc-update add docker default
+        service docker start
+    else
+        echo "Démarrage manuel requis."
+    fi
 }
