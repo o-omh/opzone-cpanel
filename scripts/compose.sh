@@ -42,3 +42,25 @@ run_docker_compose() {
 
     return 0
 }
+
+wait_for_healthy() {
+    COMPOSE_FILE="${1:-docker-compose.yml}"
+
+    echo "Attente des conteneurs healthy..."
+
+    for i in $(seq 1 30); do
+        UNHEALTHY=$(docker compose -f "$COMPOSE_FILE" ps --format json \
+            | grep -E '"Health":"starting"|"Health":"unhealthy"' || true)
+
+        if [ -z "$UNHEALTHY" ]; then
+            echo "Tous les services sont healthy ou sans healthcheck."
+            return 0
+        fi
+
+        sleep 2
+    done
+
+    echo "Timeout : certains services ne deviennent pas healthy."
+    docker compose -f "$COMPOSE_FILE" ps
+    return 1
+}
