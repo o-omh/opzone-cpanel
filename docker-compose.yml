@@ -1,7 +1,7 @@
 services:
   mkcert:
     build:
-      context: .
+      context: ./docker.conf
       dockerfile: Dockerfile-mkcert
       args:
         CERT_DIR: ${CERT_DIR}
@@ -22,7 +22,7 @@ services:
 
   nginx:
     build:
-      context: .
+      context: ./docker.conf
       dockerfile: Dockerfile-nginx
       args:
         CERT_DIR: ${FULL_PATH_CERT_DIR}
