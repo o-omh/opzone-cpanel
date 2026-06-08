@@ -65,3 +65,56 @@ start_docker_service() {
         echo "Démarrage manuel requis."
     fi
 }
+
+show_help() {
+    cat <<EOF
+Usage: $0 <commande>
+
+Commandes disponibles :
+  install   Installer Docker
+  verify    Vérifier l'installation de Docker
+  start     Démarrer et activer le service Docker
+  all       Installer, vérifier puis démarrer Docker
+  help      Afficher cette aide
+
+Exemples :
+  $0 install
+  $0 verify
+  $0 start
+  $0 all
+EOF
+}
+
+case "${1:-help}" in
+    install)
+        install_docker
+        ;;
+
+    verify)
+        verify_docker_installation
+        ;;
+
+    start)
+        start_docker_service
+        ;;
+
+    all)
+        install_docker || exit 1
+        verify_docker_installation || exit 1
+        start_docker_service || exit 1
+
+        echo "Installation terminée."
+        docker --version
+        ;;
+
+    help|-h|--help)
+        show_help
+        ;;
+
+    *)
+        echo "Commande inconnue : $1"
+        echo
+        show_help
+        exit 1
+        ;;
+esac
